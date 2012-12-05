@@ -1,0 +1,20 @@
+{
+    "name": "tillikum/zf2-cas-authentication-adapter",
+    "description": "CAS authentication adapter for Zend Framework 2",
+    "license": "GPL-2.0",
+    "authors": [
+        {
+            "name": "Gordon Stratton",
+            "email": "gordon.stratton@gmail.com"
+        }
+    ],
+    "require": {
+        "zendframework/zend-authentication": "~2.0",
+        "zendframework/zend-http": "~2.0"
+    },
+    "autoload": {
+        "psr-0": {
+            "Tillikum\\Authentication\\Adapter\\Cas": "src/"
+        }
+    }
+}

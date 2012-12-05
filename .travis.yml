@@ -1,0 +1,15 @@
+language: php
+
+php:
+  - "5.3.3"
+  - "5.3"
+  - "5.4"
+
+before_script:
+  - composer require squizlabs/php_codesniffer:~1.4
+  - composer install
+
+script:
+  - ./tests/run-tests -c tests/phpunit.xml.dist tests/TillikumTest
+  - ./vendor/bin/phpcs --standard=PSR2 src
+  - ./vendor/bin/phpcs --standard=PSR2 tests/TillikumTest
