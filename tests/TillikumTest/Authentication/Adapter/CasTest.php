@@ -21,14 +21,13 @@ class CasTest extends \PHPUnit_Framework_TestCase
 
         $this->cas10 = new Adapter\Cas(
             $this->httpClient,
-            $this->serverUri,
-            Adapter\Cas::CAS_1_0
+            $this->serverUri
         );
+        $this->cas10->setProtocolVersion(Adapter\Cas::CAS_1_0);
 
         $this->cas20 = new Adapter\Cas(
             $this->httpClient,
-            $this->serverUri,
-            Adapter\Cas::CAS_2_0
+            $this->serverUri
         );
     }
 
@@ -42,28 +41,34 @@ class CasTest extends \PHPUnit_Framework_TestCase
 
     public function testCreateLoginUri()
     {
-        $uri = $this->cas10->createLoginUri(array('foo' => 'bar'));
+        $this->cas10->setLoginParameters(array('foo' => 'bar'));
 
-        $this->assertEquals($uri, $this->serverUri . '/login?foo=bar');
+        $uri = $this->cas10->createLoginUri();
+
+        $this->assertEquals($this->serverUri . '/login?foo=bar', $uri);
     }
 
     public function testCreateLogoutUri()
     {
-        $uri = $this->cas10->createLogoutUri(array('foo' => 'bar'));
+        $this->cas10->setLogoutParameters(array('foo' => 'bar'));
 
-        $this->assertEquals($uri, $this->serverUri . '/logout?foo=bar');
+        $uri = $this->cas10->createLogoutUri();
+
+        $this->assertEquals($this->serverUri . '/logout?foo=bar', $uri);
     }
 
     public function testCreateValidateUri()
     {
-        $uri = $this->cas10->createValidateUri(
+        $this->cas10->setValidateParameters(
             array(
                 'service' => 'foo',
                 'ticket' => 'bar',
             )
         );
 
-        $this->assertEquals($uri, $this->serverUri . '/validate?service=foo&ticket=bar');
+        $uri = $this->cas10->createValidateUri();
+
+        $this->assertEquals($this->serverUri . '/validate?service=foo&ticket=bar', $uri);
     }
 
     /**
@@ -71,11 +76,13 @@ class CasTest extends \PHPUnit_Framework_TestCase
      */
     public function testValidateRequiresTicket()
     {
-        $uri = $this->cas10->createValidateUri(
+        $this->cas10->setValidateParameters(
             array(
                 'service' => 'foo',
             )
         );
+
+        $uri = $this->cas10->createValidateUri();
     }
 
     /**
@@ -83,23 +90,27 @@ class CasTest extends \PHPUnit_Framework_TestCase
      */
     public function testValidateRequiresService()
     {
-        $uri = $this->cas10->createValidateUri(
+        $this->cas10->setValidateParameters(
             array(
                 'ticket' => 'bar',
             )
         );
+
+        $uri = $this->cas10->createValidateUri();
     }
 
     public function testCreateServiceValidateUri()
     {
-        $uri = $this->cas20->createServiceValidateUri(
+        $this->cas20->setServiceValidateParameters(
             array(
                 'service' => 'foo',
                 'ticket' => 'bar',
             )
         );
 
-        $this->assertEquals($uri, $this->serverUri . '/serviceValidate?service=foo&ticket=bar');
+        $uri = $this->cas20->createServiceValidateUri();
+
+        $this->assertEquals($this->serverUri . '/serviceValidate?service=foo&ticket=bar', $uri);
     }
 
     /**
@@ -107,11 +118,13 @@ class CasTest extends \PHPUnit_Framework_TestCase
      */
     public function testServiceValidateRequiresTicket()
     {
-        $uri = $this->cas20->createServiceValidateUri(
+        $this->cas20->setServiceValidateParameters(
             array(
                 'service' => 'foo',
             )
         );
+
+        $uri = $this->cas20->createServiceValidateUri();
     }
 
     /**
@@ -119,11 +132,13 @@ class CasTest extends \PHPUnit_Framework_TestCase
      */
     public function testServiceValidateRequiresService()
     {
-        $uri = $this->cas20->createServiceValidateUri(
+        $this->cas20->setServiceValidateParameters(
             array(
                 'ticket' => 'bar',
             )
         );
+
+        $uri = $this->cas20->createServiceValidateUri();
     }
 
     public function testServerUriTrimsRightSlashes()
@@ -142,12 +157,14 @@ class CasTest extends \PHPUnit_Framework_TestCase
             $response
         );
 
-        $result = $this->cas10->validate(
+        $this->cas10->setValidateParameters(
             array(
                 'service' => 'foo',
                 'ticket' => 'bar',
             )
         );
+
+        $result = $this->cas10->validate();
 
         $this->assertEquals($isValid, $result->isValid());
 
@@ -158,11 +175,13 @@ class CasTest extends \PHPUnit_Framework_TestCase
 
     public function testValidateResponseWithInvalidArguments()
     {
-        $result = $this->cas10->validate(
+        $this->cas10->setValidateParameters(
             array(
                 'ticket' => 'bar',
             )
         );
+
+        $result = $this->cas10->validate();
 
         $this->assertFalse($result->isValid());
     }
@@ -171,12 +190,14 @@ class CasTest extends \PHPUnit_Framework_TestCase
     {
         $this->httpClient->getAdapter()->setNextRequestWillFail(true);
 
-        $result = $this->cas10->validate(
+        $this->cas10->setValidateParameters(
             array(
                 'service' => 'foo',
                 'ticket' => 'bar',
             )
         );
+
+        $result = $this->cas10->validate();
 
         $this->assertFalse($result->isValid());
     }
@@ -201,12 +222,14 @@ class CasTest extends \PHPUnit_Framework_TestCase
             $response
         );
 
-        $result = $this->cas20->serviceValidate(
+        $this->cas20->setServiceValidateParameters(
             array(
                 'service' => 'foo',
                 'ticket' => 'bar',
             )
         );
+
+        $result = $this->cas20->serviceValidate();
 
         $this->assertEquals($isValid, $result->isValid());
 
@@ -217,25 +240,29 @@ class CasTest extends \PHPUnit_Framework_TestCase
 
     public function testServiceValidateResponseWithInvalidArguments()
     {
-        $result = $this->cas20->serviceValidate(
+        $this->cas20->setServiceValidateParameters(
             array(
                 'service' => 'foo',
             )
         );
+
+        $result = $this->cas20->serviceValidate();
 
         $this->assertFalse($result->isValid());
     }
 
     public function testServiceValidateResponseWithHttpFailure()
     {
-        $this->httpClient->getAdapter()->setNextRequestWillFail(true);
-
-        $result = $this->cas20->serviceValidate(
+        $this->cas20->setServiceValidateParameters(
             array(
                 'service' => 'foo',
                 'ticket' => 'bar',
             )
         );
+
+        $this->httpClient->getAdapter()->setNextRequestWillFail(true);
+
+        $result = $this->cas20->serviceValidate();
 
         $this->assertFalse($result->isValid());
     }
@@ -291,18 +318,20 @@ class CasTest extends \PHPUnit_Framework_TestCase
             ),
             array(
                 $this->httpClient,
-                $this->serverUri,
-                Adapter\Cas::CAS_1_0
+                $this->serverUri
             )
         );
+        $adapter->setProtocolVersion(Adapter\Cas::CAS_1_0);
 
         $parameters = array('foo' => 'bar');
+
+        $adapter->setValidateParameters($parameters);
 
         $adapter->expects($this->once())
                 ->method('validate')
                 ->with($this->equalTo($parameters));
 
-        $adapter->authenticate($parameters);
+        $adapter->authenticate();
     }
 
     public function testAuthenticateWithCas20ClientUsesServiceValidate()
@@ -314,17 +343,18 @@ class CasTest extends \PHPUnit_Framework_TestCase
             ),
             array(
                 $this->httpClient,
-                $this->serverUri,
-                Adapter\Cas::CAS_2_0
+                $this->serverUri
             )
         );
 
         $parameters = array('foo' => 'bar');
 
+        $adapter->setServiceValidateParameters($parameters);
+
         $adapter->expects($this->once())
                 ->method('serviceValidate')
                 ->with($this->equalTo($parameters));
 
-        $adapter->authenticate($parameters);
+        $adapter->authenticate();
     }
 }

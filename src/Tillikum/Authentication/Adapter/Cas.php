@@ -84,6 +84,20 @@ class Cas implements Adapter\AdapterInterface
     protected $httpClient;
 
     /**
+     * Current parameters for the /login endpoint
+     *
+     * @var array
+     */
+    protected $loginParameters = array();
+
+    /**
+     * Current parameters for the /logout endpoint
+     *
+     * @var array
+     */
+    protected $logoutParameters = array();
+
+    /**
      * CAS protocol version
      *
      * @var string
@@ -98,35 +112,44 @@ class Cas implements Adapter\AdapterInterface
     protected $serverUri;
 
     /**
+     * Current parameters for the /serviceValidate endpoint
+     *
+     * @var array
+     */
+    protected $serviceValidateParameters = array();
+
+    /**
+     * Current parameters for the /validate endpoint
+     *
+     * @var string
+     */
+    protected $validateParameters = array();
+
+    /**
      * @param Http\Client $httpClient
      * @param string      $serverUri
-     * @param string      $protocolVersion
      */
-    public function __construct(
-        Http\Client $httpClient,
-        $serverUri,
-        $protocolVersion = self::CAS_2_0
-    ) {
-        $this->httpClient = $httpClient;
-
+    public function __construct(Http\Client $httpClient, $serverUri)
+    {
+        $this->setHttpClient($httpClient);
         $this->setServerUri($serverUri);
-        $this->setProtocolVersion($protocolVersion);
+
+        $this->protocolVersion = self::CAS_2_0;
     }
 
     /**
      * Authenticate against a configured CAS server
      *
-     * @param  array            $parameters boolean
      * @return Zend_Auth_Result
      */
-    public function authenticate(array $parameters = array())
+    public function authenticate()
     {
         switch ($this->protocolVersion) {
             case self::CAS_1_0:
-                return $this->validate($parameters);
+                return $this->validate($this->getValidateParameters());
                 break;
             case self::CAS_2_0:
-                return $this->serviceValidate($parameters);
+                return $this->serviceValidate($this->getServiceValidateParameters());
                 break;
             default:
                 return new Authentication\Result(
@@ -143,49 +166,73 @@ class Cas implements Adapter\AdapterInterface
     /**
      * @return string
      */
-    public function createLoginUri(array $parameters)
+    public function createLoginUri()
     {
         return $this->createUri(
             'login',
             self::$requiredLoginParameters,
-            $parameters
+            $this->getLoginParameters()
         );
     }
 
     /**
      * @return string
      */
-    public function createLogoutUri(array $parameters)
+    public function createLogoutUri()
     {
         return $this->createUri(
             'logout',
             self::$requiredLogoutParameters,
-            $parameters
+            $this->getLogoutParameters()
         );
     }
 
     /**
      * @return string
      */
-    public function createServiceValidateUri(array $parameters)
+    public function createServiceValidateUri()
     {
         return $this->createUri(
             'serviceValidate',
             self::$requiredServiceValidateParameters,
-            $parameters
+            $this->getServiceValidateParameters()
         );
     }
 
     /**
      * @return string
      */
-    public function createValidateUri(array $parameters)
+    public function createValidateUri()
     {
         return $this->createUri(
             'validate',
             self::$requiredValidateParameters,
-            $parameters
+            $this->getValidateParameters()
         );
+    }
+
+    /**
+     * @return Http\Client
+     */
+    public function getHttpClient()
+    {
+        return $this->httpClient;
+    }
+
+    /**
+     * @return array
+     */
+    public function getLoginParameters()
+    {
+        return $this->loginParameters;
+    }
+
+    /**
+     * @return array
+     */
+    public function getLogoutParameters()
+    {
+        return $this->logoutParameters;
     }
 
     /**
@@ -205,13 +252,28 @@ class Cas implements Adapter\AdapterInterface
     }
 
     /**
-     * @param  array                $parameters
+     * @return array
+     */
+    public function getServiceValidateParameters()
+    {
+        return $this->serviceValidateParameters;
+    }
+
+    /**
+     * @return array
+     */
+    public function getValidateParameters()
+    {
+        return $this->validateParameters;
+    }
+
+    /**
      * @return Authentication\Result
      */
-    public function serviceValidate(array $parameters)
+    public function serviceValidate()
     {
         try {
-            $uri = $this->createServiceValidateUri($parameters);
+            $uri = $this->createServiceValidateUri();
         } catch (Adapter\Exception\InvalidArgumentException $e) {
             return new Authentication\Result(
                 Authentication\Result::FAILURE,
@@ -302,7 +364,37 @@ class Cas implements Adapter\AdapterInterface
     }
 
     /**
-     * @param  string                             $version
+     * @return Cas
+     */
+    public function setHttpClient(Http\Client $httpClient)
+    {
+        $this->httpClient = $httpClient;
+
+        return $this;
+    }
+
+    /**
+     * @return Cas
+     */
+    public function setLoginParameters(array $parameters)
+    {
+        $this->loginParameters = $parameters;
+
+        return $this;
+    }
+
+    /**
+     * @return Cas
+     */
+    public function setLogoutParameters(array $parameters)
+    {
+        $this->logoutParameters = $parameters;
+
+        return $this;
+    }
+
+    /**
+     * @param  string                                     $version
      * @return Cas
      * @throws Adapter\Exception\InvalidArgumentException
      */
@@ -339,13 +431,32 @@ class Cas implements Adapter\AdapterInterface
     }
 
     /**
-     * @param  array                $parameters
+     * @return Cas
+     */
+    public function setServiceValidateParameters(array $parameters)
+    {
+        $this->serviceValidateParameters = $parameters;
+
+        return $this;
+    }
+
+    /**
+     * @return Cas
+     */
+    public function setValidateParameters(array $parameters)
+    {
+        $this->validateParameters = $parameters;
+
+        return $this;
+    }
+
+    /**
      * @return Authentication\Result
      */
-    public function validate(array $parameters)
+    public function validate()
     {
         try {
-            $uri = $this->createValidateUri($parameters);
+            $uri = $this->createValidateUri();
         } catch (Adapter\Exception\InvalidArgumentException $e) {
             return new Authentication\Result(
                 Authentication\Result::FAILURE,
