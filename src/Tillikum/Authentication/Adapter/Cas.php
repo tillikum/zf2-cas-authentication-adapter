@@ -8,7 +8,6 @@
  */
 
 namespace Tillikum\Authentication\Adapter;
-include __DIR__ . '/../CasResult.php';
 
 use Zend\Authentication\Adapter;
 use Zend\Http;
