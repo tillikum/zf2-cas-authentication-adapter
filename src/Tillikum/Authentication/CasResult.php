@@ -1,5 +1,6 @@
 <?php
 namespace Tillikum\Authentication;
+
 use Zend\Authentication\Result;
 
 /**
