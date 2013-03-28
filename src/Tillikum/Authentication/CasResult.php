@@ -8,7 +8,8 @@ use Zend\Authentication\Result;
  * Extension of Zend's Authentication\Result class which contains additional information about the Authentication
  * Result.
  */
-class CasResult extends Result {
+class CasResult extends Result
+{
 
     /**
      * The contents of the result of the CAS Message
@@ -23,7 +24,7 @@ class CasResult extends Result {
      * @param array $messages
      * @param string|null $resultBody
      */
-    function __construct($code, $identity, array $messages = array(), $resultBody=null)
+    public function __construct($code, $identity, array $messages = array(), $resultBody = null)
     {
         parent::__construct($code, $identity, $messages);
         $this->resultBody = $resultBody;
