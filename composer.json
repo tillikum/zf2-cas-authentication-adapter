@@ -15,7 +15,7 @@
     "autoload": {
         "psr-0": {
             "Tillikum\\Authentication\\Adapter\\Cas": "src/",
-            "Tillikum\\Authentication\\Adapter": "src/"
+            "Tillikum\\Authentication\\CasResult": "src/"
         }
     }
 }
