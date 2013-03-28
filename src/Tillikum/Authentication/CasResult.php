@@ -1,6 +1,5 @@
 <?php
 namespace Tillikum\Authentication;
-
 use Zend\Authentication\Result;
 
 /**
@@ -48,5 +47,4 @@ class CasResult extends Result
     {
         return $this->resultBody;
     }
-
 }
