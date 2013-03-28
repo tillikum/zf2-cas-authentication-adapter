@@ -9,9 +9,9 @@
 
 namespace Tillikum\Authentication\Adapter;
 
-use Zend\Authentication;
 use Zend\Authentication\Adapter;
 use Zend\Http;
+use Tillikum\Authentication\CasResult;
 
 class Cas implements Adapter\AdapterInterface
 {
@@ -137,10 +137,9 @@ class Cas implements Adapter\AdapterInterface
         $this->protocolVersion = self::CAS_2_0;
     }
 
+
     /**
-     * Authenticate against a configured CAS server
-     *
-     * @return Zend_Auth_Result
+     * @return CasResult
      */
     public function authenticate()
     {
@@ -152,8 +151,8 @@ class Cas implements Adapter\AdapterInterface
                 return $this->serviceValidate($this->getServiceValidateParameters());
                 break;
             default:
-                return new Authentication\Result(
-                    Authentication\Result::FAILURE,
+                return new CasResult(
+                    CasResult::FAILURE,
                     '',
                     array(
                         'Invalid version or no version set.'
@@ -268,15 +267,15 @@ class Cas implements Adapter\AdapterInterface
     }
 
     /**
-     * @return Authentication\Result
+     * @return CasResult
      */
     public function serviceValidate()
     {
         try {
             $uri = $this->createServiceValidateUri();
         } catch (Adapter\Exception\InvalidArgumentException $e) {
-            return new Authentication\Result(
-                Authentication\Result::FAILURE,
+            return new CasResult(
+                CasResult::FAILURE,
                 '',
                 array($e->getMessage())
             );
@@ -288,8 +287,8 @@ class Cas implements Adapter\AdapterInterface
         try {
             $response = $this->httpClient->send();
         } catch (Http\Exception\RuntimeException $e) {
-            return new Authentication\Result(
-                Authentication\Result::FAILURE_UNCATEGORIZED,
+            return new CasResult(
+                CasResult::FAILURE_UNCATEGORIZED,
                 '',
                 array(
                     $e->getMessage()
@@ -298,12 +297,13 @@ class Cas implements Adapter\AdapterInterface
         }
 
         if (!$response->isSuccess()) {
-            return new Authentication\Result(
-                Authentication\Result::FAILURE_UNCATEGORIZED,
+            return new CasResult(
+                CasResult::FAILURE_UNCATEGORIZED,
                 '',
                 array(
                     'HTTP response did not indicate success.'
-                )
+                ),
+                $response->getBody()
             );
         }
 
@@ -321,10 +321,11 @@ class Cas implements Adapter\AdapterInterface
             libxml_clear_errors();
             libxml_use_internal_errors($previousErrorSetting);
 
-            return new Authentication\Result(
-                Authentication\Result::FAILURE_UNCATEGORIZED,
+            return new CasResult(
+                CasResult::FAILURE_UNCATEGORIZED,
                 '',
-                $errors
+                $errors,
+                $body
             );
         }
 
@@ -340,31 +341,36 @@ class Cas implements Adapter\AdapterInterface
                 );
             }
 
-            return new Authentication\Result(
-                Authentication\Result::FAILURE_UNCATEGORIZED,
+            return new CasResult(
+                CasResult::FAILURE_UNCATEGORIZED,
                 '',
-                $errors
+                $errors,
+                $body
             );
         }
 
         if (empty($simpleXmlElement->authenticationSuccess)) {
-            return new Authentication\Result(
-                Authentication\Result::FAILURE_UNCATEGORIZED,
+            return new CasResult(
+                CasResult::FAILURE_UNCATEGORIZED,
                 '',
                 array(
                     'authenticationSuccess was not found in the server response.'
-                )
+                ),
+                $body
             );
         }
 
-        return new Authentication\Result(
-            Authentication\Result::SUCCESS,
-            (string) $simpleXmlElement->authenticationSuccess->user
+        return new CasResult(
+            CasResult::SUCCESS,
+            (string) $simpleXmlElement->authenticationSuccess->user,
+            array(),
+            $body
         );
     }
 
     /**
-     * @return Cas
+     * @param Http\Client $httpClient
+     * @return $this
      */
     public function setHttpClient(Http\Client $httpClient)
     {
@@ -374,7 +380,8 @@ class Cas implements Adapter\AdapterInterface
     }
 
     /**
-     * @return Cas
+     * @param array $parameters
+     * @return $this
      */
     public function setLoginParameters(array $parameters)
     {
@@ -384,7 +391,8 @@ class Cas implements Adapter\AdapterInterface
     }
 
     /**
-     * @return Cas
+     * @param array $parameters
+     * @return $this
      */
     public function setLogoutParameters(array $parameters)
     {
@@ -431,7 +439,8 @@ class Cas implements Adapter\AdapterInterface
     }
 
     /**
-     * @return Cas
+     * @param array $parameters
+     * @return $this
      */
     public function setServiceValidateParameters(array $parameters)
     {
@@ -441,7 +450,8 @@ class Cas implements Adapter\AdapterInterface
     }
 
     /**
-     * @return Cas
+     * @param array $parameters
+     * @return $this
      */
     public function setValidateParameters(array $parameters)
     {
@@ -451,15 +461,15 @@ class Cas implements Adapter\AdapterInterface
     }
 
     /**
-     * @return Authentication\Result
+     * @return CasResult
      */
     public function validate()
     {
         try {
             $uri = $this->createValidateUri();
         } catch (Adapter\Exception\InvalidArgumentException $e) {
-            return new Authentication\Result(
-                Authentication\Result::FAILURE,
+            return new CasResult(
+                CasResult::FAILURE,
                 '',
                 array($e->getMessage())
             );
@@ -471,8 +481,8 @@ class Cas implements Adapter\AdapterInterface
         try {
             $response = $this->httpClient->send();
         } catch (Http\Exception\RuntimeException $e) {
-            return new Authentication\Result(
-                Authentication\Result::FAILURE_UNCATEGORIZED,
+            return new CasResult(
+                CasResult::FAILURE_UNCATEGORIZED,
                 '',
                 array(
                     $e->getMessage()
@@ -481,12 +491,13 @@ class Cas implements Adapter\AdapterInterface
         }
 
         if (!$response->isSuccess()) {
-            return new Authentication\Result(
-                Authentication\Result::FAILURE_UNCATEGORIZED,
+            return new CasResult(
+                CasResult::FAILURE_UNCATEGORIZED,
                 '',
                 array(
                     'HTTP response did not indicate success.'
-                )
+                ),
+                $response->getBody()
             );
         }
 
@@ -495,12 +506,13 @@ class Cas implements Adapter\AdapterInterface
         $explodedResponse = explode("\n", $body);
 
         if (count($explodedResponse) < 2) {
-            return new Authentication\Result(
-                Authentication\Result::FAILURE_UNCATEGORIZED,
+            return new CasResult(
+                CasResult::FAILURE_UNCATEGORIZED,
                 '',
                 array(
                     'Got an invalid CAS 1.0 response.'
-                )
+                ),
+                $body
             );
         }
 
@@ -508,18 +520,21 @@ class Cas implements Adapter\AdapterInterface
         $identity = $explodedResponse[1];
 
         if ($status !== 'yes') {
-            return new Authentication\Result(
-                Authentication\Result::FAILURE_UNCATEGORIZED,
+            return new CasResult(
+                CasResult::FAILURE_UNCATEGORIZED,
                 '',
                 array(
                     'Authentication failed.'
-                )
+                ),
+                $body
             );
         }
 
-        return new Authentication\Result(
-            Authentication\Result::SUCCESS,
-            $identity
+        return new CasResult(
+            CasResult::SUCCESS,
+            $identity,
+            array(),
+            $body
         );
     }
 
