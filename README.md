@@ -23,7 +23,7 @@ Add this repository to your `composer.json`:
        }
     ],
     "require": {
-        "tillikum/zf2-cas-authentication/adapter": "dev-master"
+        "tillikum/zf2-cas-authentication-adapter": "dev-master"
     }
 }
 ```
