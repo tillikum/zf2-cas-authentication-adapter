@@ -16,14 +16,8 @@ Add this repository to your `composer.json`:
 
 ```json
 {
-    "repositories": [
-       {
-           "type": "vcs",
-           "url": "https://github.com/tillikum/zf2-cas-authentication-adapter"
-       }
-    ],
     "require": {
-        "tillikum/zf2-cas-authentication-adapter": "dev-master"
+        "tillikum/zf2-cas-authentication-adapter": "~0.0"
     }
 }
 ```
