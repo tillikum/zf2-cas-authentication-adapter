@@ -137,7 +137,6 @@ class Cas implements Adapter\AdapterInterface
         $this->protocolVersion = self::CAS_2_0;
     }
 
-
     /**
      * @return CasResult
      */
@@ -369,7 +368,7 @@ class Cas implements Adapter\AdapterInterface
     }
 
     /**
-     * @param Http\Client $httpClient
+     * @param  Http\Client $httpClient
      * @return $this
      */
     public function setHttpClient(Http\Client $httpClient)
@@ -380,7 +379,7 @@ class Cas implements Adapter\AdapterInterface
     }
 
     /**
-     * @param array $parameters
+     * @param  array $parameters
      * @return $this
      */
     public function setLoginParameters(array $parameters)
@@ -391,7 +390,7 @@ class Cas implements Adapter\AdapterInterface
     }
 
     /**
-     * @param array $parameters
+     * @param  array $parameters
      * @return $this
      */
     public function setLogoutParameters(array $parameters)
@@ -439,7 +438,7 @@ class Cas implements Adapter\AdapterInterface
     }
 
     /**
-     * @param array $parameters
+     * @param  array $parameters
      * @return $this
      */
     public function setServiceValidateParameters(array $parameters)
@@ -450,7 +449,7 @@ class Cas implements Adapter\AdapterInterface
     }
 
     /**
-     * @param array $parameters
+     * @param  array $parameters
      * @return $this
      */
     public function setValidateParameters(array $parameters)
