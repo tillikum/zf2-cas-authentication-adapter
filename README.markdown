@@ -35,31 +35,51 @@ use Zend\Http;
 
 $httpClient = new Http\Client();
 
-// Standalone
+/** Standalone **/
 
 $adapter = new CasAdapter(
     $httpClient,
     'http://localhost/cas'
 );
 
-$result = $adapter->authenticate(
+// You'll need to do this in response to requests to your system:
+$adapter->setServiceValidateParameters(
     array(
         'service' => 'http://my/current/url',
         'ticket' => 'ST-ACME-123',
     )
 );
 
-// Plugged in to Zend\Authentication
+$result = $adapter->authenticate();
+
+/** Plugged in to Zend\Authentication **/
+
+// Assuming we're still using the $adapter constructed above:
 
 $authService = new Authentication\AuthenticationService(
     new Authentication\Storage\NonPersistent(),
     $adapter
 );
 
-$result = $authService->authenticate(
+$result = $authService->authenticate();
+```
+
+## Troubleshooting
+
+### SSL problems when talking to a CAS server
+
+You can pass any options you like or need to the `Zend\Http\Client`. One example
+below may be necessary to give an absolute CA path for your environment:
+
+```php
+<?php
+
+$httpClient = new Zend\Http\Client();
+$httpClient->setOptions(
     array(
-        'service' => 'http://my/current/url',
-        'ticket' => 'ST-ACME-123',
+        'sslcapath' => '/etc/ssl/certs'
     )
 );
+
+// ... Pass the modified HTTP client to the adapter as usual ...
 ```
